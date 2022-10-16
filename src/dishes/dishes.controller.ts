@@ -1,9 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { DishesService } from './dishes.service';
 import { CreateDishDto } from './dto/create-dish.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
 
 @Controller('dishes')
+@ApiTags('dishes')
 export class DishesController {
   constructor(private readonly dishesService: DishesService) {}
 
@@ -19,16 +21,16 @@ export class DishesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.dishesService.findOne(+id);
+    return this.dishesService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDishDto: UpdateDishDto) {
-    return this.dishesService.update(+id, updateDishDto);
+    return this.dishesService.update(id, updateDishDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.dishesService.remove(+id);
+    return this.dishesService.remove(id);
   }
 }

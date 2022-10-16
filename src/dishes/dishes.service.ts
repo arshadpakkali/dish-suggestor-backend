@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDishDto } from './dto/create-dish.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
+import * as dishes from './entities/indian_food_data.json';
 
 @Injectable()
 export class DishesService {
@@ -9,18 +10,18 @@ export class DishesService {
   }
 
   findAll() {
-    return `This action returns all dishes`;
+    return dishes;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} dish`;
+  findOne(id: string) {
+    return dishes.filter((x) => x.name === id);
   }
 
-  update(id: number, updateDishDto: UpdateDishDto) {
+  update(id: string, updateDishDto: UpdateDishDto) {
     return `This action updates a #${id} dish`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} dish`;
   }
 }
