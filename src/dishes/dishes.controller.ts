@@ -1,36 +1,65 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
+import { PaginatedResponseDto } from 'src/shared/dto/page.dto';
 import { DishesService } from './dishes.service';
 import { CreateDishDto } from './dto/create-dish.dto';
-import { UpdateDishDto } from './dto/update-dish.dto';
+import { DishDto, DishesQueryDto } from './dto/dish.dto';
 
 @Controller('dishes')
 @ApiTags('dishes')
 export class DishesController {
   constructor(private readonly dishesService: DishesService) {}
 
-  @Post()
-  create(@Body() createDishDto: CreateDishDto) {
-    return this.dishesService.create(createDishDto);
-  }
-
   @Get()
-  findAll() {
-    return this.dishesService.findAll();
+  @ApiOkResponse({
+    schema: {
+      oneOf: [
+        { type: 'array', items: { $ref: getSchemaPath(DishDto) } },
+        {
+          allOf: [
+            { $ref: getSchemaPath(PaginatedResponseDto) },
+            {
+              properties: {
+                results: {
+                  type: 'array',
+                  items: { $ref: getSchemaPath(DishDto) },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  })
+  @ApiExtraModels(PaginatedResponseDto)
+  findAll(
+    @Query() query: DishesQueryDto,
+  ): DishDto[] | PaginatedResponseDto<DishDto> {
+    return this.dishesService.findAll(query);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.dishesService.findOne(id);
+  @Get('query')
+  findbyIngredients(@Query('ingredient') ingredients: string[]): DishDto[] {
+    return this.dishesService.findByIngredients(ingredients);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDishDto: UpdateDishDto) {
-    return this.dishesService.update(id, updateDishDto);
+  @Get('fuzzy')
+  fuzzyFind(@Query('search') query: string) {
+    return this.dishesService.fuzzySearch(query);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.dishesService.remove(id);
+  @Get(':name')
+  findOneByName(@Param('name') name: string): DishDto {
+    return this.dishesService.findByName(name);
+  }
+
+  @Post()
+  createDish(@Body() _body: CreateDishDto) {
+    return;
   }
 }

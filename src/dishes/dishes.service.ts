@@ -1,27 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import { CreateDishDto } from './dto/create-dish.dto';
-import { UpdateDishDto } from './dto/update-dish.dto';
-import * as dishes from './entities/indian_food_data.json';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import _ from 'lodash';
+import Fuse from 'fuse.js';
+import { DishDto, DishesQueryDto } from './dto/dish.dto';
+
+import dishes from './entities/dish.entity';
+import { PageQueryDto, PaginatedResponseDto } from 'src/shared/dto/page.dto';
 
 @Injectable()
 export class DishesService {
-  create(createDishDto: CreateDishDto) {
-    return 'This action adds a new dish';
+  private dishesFuzzy: Fuse<DishDto>;
+
+  constructor() {
+    this.dishesFuzzy = new Fuse(dishes, {
+      includeScore: true,
+      shouldSort: true,
+      keys: ['name', 'ingredients', 'state', 'region'],
+    });
   }
 
-  findAll() {
-    return dishes;
+  findAll(query: DishesQueryDto): PaginatedResponseDto<DishDto> | DishDto[] {
+    const { page } = query;
+    if (!page) {
+      return dishes;
+    }
+    return DishesService.paginate(dishes, query.page);
   }
 
-  findOne(id: string) {
-    return dishes.filter((x) => x.name === id);
+  findByName(id: string) {
+    const dish = dishes.find((x) => x.name === id);
+    if (!dish) {
+      throw new NotFoundException(`${id} Not found`);
+    }
+    return dish;
   }
 
-  update(id: string, updateDishDto: UpdateDishDto) {
-    return `This action updates a #${id} dish`;
+  findByIngredients(ingredientsQuery: string[]) {
+    return dishes.filter((dish) =>
+      ingredientsQuery.every((q) => dish.ingredients.find((i) => i === q)),
+    );
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} dish`;
+  fuzzySearch(query: string) {
+    return this.dishesFuzzy.search(query).map((x) => x.item);
+  }
+
+  static paginate<T>(
+    data: T[],
+    pageOpts: PageQueryDto,
+  ): PaginatedResponseDto<T> {
+    const from = (pageOpts.currentPage - 1) * pageOpts.perPage;
+
+    const endQuery = from + pageOpts.perPage;
+
+    const to = endQuery > data.length ? data.length : endQuery;
+
+    return {
+      results: data.slice(from, to),
+      pagination: {
+        from,
+        to,
+        perPage: pageOpts.perPage,
+        currentPage: pageOpts.currentPage,
+        total: data.length,
+        lastPage: Math.ceil(data.length / pageOpts.perPage),
+      },
+    };
   }
 }

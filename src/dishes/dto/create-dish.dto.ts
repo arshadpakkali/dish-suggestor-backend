@@ -1,1 +1,3 @@
-export class CreateDishDto {}
+export class CreateDishDto {
+    hello:string
+}
