@@ -3,8 +3,8 @@ import { IsInt, Min } from 'class-validator';
 
 export class PageQueryDto {
   @IsInt()
-  @Min(1)
-  currentPage: number = 1;
+  @Min(0)
+  currentPage: number = 0;
 
   @IsInt()
   @Min(1)

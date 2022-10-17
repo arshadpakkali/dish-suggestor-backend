@@ -48,7 +48,7 @@ export class DishesService {
     data: T[],
     pageOpts: PageQueryDto,
   ): PaginatedResponseDto<T> {
-    const from = (pageOpts.currentPage - 1) * pageOpts.perPage;
+    const from = pageOpts.currentPage * pageOpts.perPage;
 
     const endQuery = from + pageOpts.perPage;
 
